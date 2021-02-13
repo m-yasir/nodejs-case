@@ -3,11 +3,11 @@
 /**
  * Module dependencies.
  */
-
-var app = require('../app');
 require("dotenv").config();
+var app = require('../app');
 var debug = require('debug')('test:server');
 var http = require('http');
+const { sequelize } = require('../models/index');
 
 /**
  * Get port from environment and store in Express.
@@ -79,11 +79,38 @@ function onError(error) {
 }
 
 /**
+ * Init Sequelize
+ */
+
+function initSequelize() {
+	return sequelize
+		.authenticate()
+		.then(async (result) => {
+      console.log("Connection to the database was successful!");
+      console.log(result);
+			sequelize
+				.sync()
+				.then(() => {
+					console.log("Database Sync successful!");
+				})
+				.catch((err) => {
+					console.log("Database Sync Unsuccessful!");
+					console.log(err);
+				});
+		})
+		.catch((err) => {
+      console.log("Error connecting to the database!");
+      console.log(err);
+    });
+}
+
+/**
  * Event listener for HTTP server "listening" event.
  */
 
 function onListening() {
   var addr = server.address();
+  initSequelize();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
